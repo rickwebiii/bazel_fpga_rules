@@ -1,5 +1,3 @@
-source {FILES_TCL}
-source {CONSTRAINTS_TCL}
 
 #######################################################################################
 # User Settings 
@@ -7,11 +5,13 @@ source {CONSTRAINTS_TCL}
 
 # global settings
 set PROJ_NAME {PROJECT_NAME}
-set PROJ_DIR "./$PROJ_NAME"
+set PROJ_DIR {BASE_DIR}
 set PART_NAME {PART_NAME}
+set TOP_MODULE {TOP_MODULE}
 
 # synthesis related settings
-#set SYNTH_ARGS ""
+set SYNTH_ARGS ""
+{SYNTH_ARGS}
 #append SYNTH_ARGS " " -flatten_hierarchy " " rebuilt " "
 #append SYNTH_ARGS " " -gated_clock_conversion " " off " "
 #append SYNTH_ARGS " " -bufg " {" 12 "} "
@@ -51,11 +51,13 @@ set_part $PART_NAME
 #source {CONSTRAINTS_TCL}
 #
 #
+source {FILES_TCL}
+source {CONSTRAINTS_TCL}
 ## Synthesize Design
-#eval "synth_design $DEFINES $SYNTH_ARGS -top $TOP_MODULE -part $PART_NM"
-#report_timing_summary -file $PROJ_DIR/${PROJ_NM}_post_synth_tim.rpt
-#report_utilization -file $PROJ_DIR/${PROJ_NM}_post_synth_util.rpt
-#write_checkpoint -force $PROJ_DIR/${PROJ_NM}_post_synth.dcp
+eval "synth_design $SYNTH_ARGS -top $TOP_MODULE -part $PART_NAME"
+report_timing_summary -file $PROJ_DIR/${PROJ_NAME}.rpt
+report_utilization -file $PROJ_DIR/${PROJ_NAME}.rpt
+write_checkpoint -force $PROJ_DIR/${PROJ_NAME}.dcp
 #
 ## Opt Design 
 #opt_design -directive Explore

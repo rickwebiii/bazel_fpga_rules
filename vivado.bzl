@@ -37,6 +37,11 @@ def _synthesize(ctx):
 
   build_tcl = ctx.actions.declare_file(ctx.attr.name + "_synthesis.tcl")
 
+  synth_args = ""
+
+  for arg in ctx.attr.synth_args:
+    synth_args += "append" + arg
+
   ctx.actions.expand_template(
     template = ctx.file.build_template,
     output = build_tcl,
@@ -45,6 +50,9 @@ def _synthesize(ctx):
       "{PART_NAME}": ctx.attr.part,
       "{FILES_TCL}": files_tcl.path,
       "{CONSTRAINTS_TCL}": constraints_tcl.path,
+      "{TOP_MODULE}": ctx.attr.top,
+      "{SYNTH_ARGS}": synth_args,
+      "{BASE_DIR}": ctx.genfiles_dir.path
     }
   )      
 
@@ -54,26 +62,31 @@ def _synthesize(ctx):
     build_tcl
   ]
 
-  output = ctx.actions.declare_file("horse2")
+  checkpoint = ctx.actions.declare_file(ctx.attr.name + ".dcp")
+
+  log_file = ctx.actions.declare_file(ctx.attr.name + ".log")
+  journal_file = ctx.actions.declare_file(ctx.attr.name + ".jou")
 
   args = ctx.actions.args()
 
   args.add_all([
-    build_tcl
+    build_tcl,
+    log_file,
+    journal_file
   ])
 
   ctx.actions.run_shell(
-    command = "/tools/Xilinx/Vivado/2019.2/bin/vivado -mode batch -source $1",
+    command = "/tools/Xilinx/Vivado/2019.2/bin/vivado -mode batch -source $1 -log $2 -journal $3",
     arguments = [args],
     inputs = vivado_inputs,
-    outputs = [ output ],
-    progress_message = "vivado",
+    outputs = [ checkpoint, log_file, journal_file ],
+    progress_message = "vivado_synthesis",
     use_default_shell_env = True,
   )
 
-  return [DefaultInfo(files = depset([
-    output
-  ]))]
+  return [DefaultInfo(files = depset(
+    [checkpoint]
+  ))]
 
 synthesize = rule(
   implementation = _synthesize,
@@ -84,6 +97,63 @@ synthesize = rule(
     "part": attr.string(),
     "_files_tcl_template": attr.label( allow_single_file = True, default = Label("//:files.tcl")),
     "_constraints_template": attr.label( allow_single_file = True, default = Label("//:constraints.tcl")),
-    "build_template": attr.label( allow_single_file = True, default = Label("//:basic_bitstream.tcl")),
+    "build_template": attr.label( allow_single_file = True, default = Label("//:basic_synthesis.tcl")),
+    "synth_args": attr.string_list(allow_empty = True, default = []),
   },
+)
+
+def _run_tcl_from_checkpoint_impl(ctx):
+  tcl = ctx.actions.declare_file(ctx.file.build_template.basename + "tcl")
+
+  ctx.actions.expand_template(
+    template = ctx.file.build_template,
+    output = tcl,
+    substitutions = {
+      "{PROJECT_NAME}": ctx.attr.name,
+      "{BASE_DIR}": ctx.genfiles_dir.path,
+      "{CHECKPOINT}": ctx.file.checkpoint.path
+    }
+  )
+  
+  args = ctx.actions.args()
+
+  log_file = ctx.actions.declare_file(ctx.attr.name + ".log")
+  journal_file = ctx.actions.declare_file(ctx.attr.name + ".jou")
+
+  args.add_all([
+    tcl,
+    log_file,
+    journal_file,
+  ])
+
+  output = ctx.actions.declare_file(ctx.attr.name + ".dcp")
+
+  ctx.actions.run_shell(
+    command = "/tools/Xilinx/Vivado/2019.2/bin/vivado -mode batch -source $1 -log $2 -journal $3",
+    arguments = [args],
+    inputs = [ctx.file.checkpoint, tcl],
+    outputs = [ output, log_file, journal_file ],
+    progress_message = "vivado_run_tcl " + tcl.basename,
+    use_default_shell_env = True,
+  )
+
+  return [DefaultInfo(files = depset([
+    output
+  ]))]
+
+optimize_design = rule(
+  implementation = _run_tcl_from_checkpoint_impl,
+  attrs = {
+    "checkpoint": attr.label(allow_single_file = [".dcp"]),
+    "build_template": attr.label(allow_single_file = True, default = "//:basic_optimize.tcl" ),
+  }
+)
+
+place = rule(
+  implementation = _run_tcl_from_checkpoint_impl,
+  attrs = {
+    "checkpoint": attr.label(allow_single_file = [".dcp"]),
+    "build_template": attr.label(allow_single_file = True, default = "//:basic_place.tcl" ),
+  }
+  
 )
