@@ -41,7 +41,7 @@ I tested these rules in Debian with Windows Subsystem for Linux. If they work in
 
 ### WSL
 Installing Vivado on WSL requires an X11 server. However, running startx fails in WSL for me, so I had to install VcXsrv.
-1. Install [VcXsrv][http://vcxsrv.sourceforge] in the host Windows OS.
+1. Install [VcXsrv](http://vcxsrv.sourceforge) in the host Windows OS.
 2. I couldn't get the cable driver to work in WSL. To work around this, install Vivado Lab Edition on the host Windows environment.
 
 ### Notes
@@ -76,7 +76,7 @@ The commands above are specific to the Digilent Zybo Z7-10 board with the Xilinx
 Your FPGA is probably different. To find the device number you want, start Vivado in tcl mode, `source connect_hw_server.tcl`, then run `get_hw_devices`. This will give you list of things you can program on your FPGA. Change the 1 to i where i is the ith device `get_hw_devices` returns.
 
 ## Acknowlegements
-These rules internally generate tcl scripts from a template and call `vivado -mode batch gen.tcl`. The [Hardware Jedi][https://hwjedi.wordpress.com/2017/01/29/vivado-non-project-mode-part-ii-building-off-a-solid-foundation/] provides an excellent guide on how to not use projects in Vivado. These rules generate what is effectively templated tcl broken into stages from derived from this guide.
+These rules internally generate tcl scripts from a template and call `vivado -mode batch gen.tcl`. The [Hardware Jedi](https://hwjedi.wordpress.com/2017/01/29/vivado-non-project-mode-part-ii-building-off-a-solid-foundation/) provides an excellent guide on how to not use projects in Vivado. These rules generate what is effectively templated tcl broken into stages from derived from this guide.
 
 ## Quartus
 I don't have an Altera FPGA, so no rules for you.
