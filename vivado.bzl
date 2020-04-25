@@ -50,7 +50,7 @@ def _synthesize(ctx):
       "{PART_NAME}": ctx.attr.part,
       "{FILES_TCL}": files_tcl.path,
       "{CONSTRAINTS_TCL}": constraints_tcl.path,
-      "{TOP_MODULE}": ctx.attr.top,
+      "{TOP_MODULE}": ctx.attr.topEntity,
       "{SYNTH_ARGS}": synth_args,
       "{BASE_DIR}": ctx.genfiles_dir.path
     }
@@ -93,7 +93,7 @@ synthesize = rule(
   attrs = {
     "srcs": attr.label_list(allow_files = [ ".v", "vh", ".vhd", ".vhdl" ]),
     "constraints": attr.label_list(allow_files = [".xdc"]),
-    "top": attr.string(),
+    "topEntity": attr.string(),
     "part": attr.string(),
     "_files_tcl_template": attr.label( allow_single_file = True, default = Label("//:files.tcl")),
     "_constraints_template": attr.label( allow_single_file = True, default = Label("//:constraints.tcl")),
@@ -103,7 +103,7 @@ synthesize = rule(
 )
 
 def _run_tcl_from_checkpoint_impl(ctx):
-  tcl = ctx.actions.declare_file(ctx.file.build_template.basename + "tcl")
+  tcl = ctx.actions.declare_file(ctx.file.build_template.basename + ".tcl")
 
   ctx.actions.expand_template(
     template = ctx.file.build_template,
@@ -155,5 +155,125 @@ place = rule(
     "checkpoint": attr.label(allow_single_file = [".dcp"]),
     "build_template": attr.label(allow_single_file = True, default = "//:basic_place.tcl" ),
   }
-  
 )
+
+place_optimize = rule(
+  implementation = _run_tcl_from_checkpoint_impl,
+  attrs = {
+    "checkpoint": attr.label(allow_single_file = [".dcp"]),
+    "build_template": attr.label(allow_single_file = True, default = "//:basic_place_optimize.tcl" ),
+  }
+)
+
+route = rule(
+  implementation = _run_tcl_from_checkpoint_impl,
+  attrs = {
+    "checkpoint": attr.label(allow_single_file = [".dcp"]),
+    "build_template": attr.label(allow_single_file = True, default = "//:basic_route.tcl" ),
+  }
+)
+
+def _create_bitstream_impl(ctx):
+  tcl = ctx.actions.declare_file(ctx.file.build_template.basename + ".tcl")
+
+  ctx.actions.expand_template(
+    template = ctx.file.build_template,
+    output = tcl,
+    substitutions = {
+      "{PROJECT_NAME}": ctx.attr.name,
+      "{BASE_DIR}": ctx.genfiles_dir.path,
+      "{CHECKPOINT}": ctx.file.checkpoint.path
+    }
+  )
+  
+  args = ctx.actions.args()
+
+  log_file = ctx.actions.declare_file(ctx.attr.name + ".log")
+  journal_file = ctx.actions.declare_file(ctx.attr.name + ".jou")
+
+  args.add_all([
+    tcl,
+    log_file,
+    journal_file,
+  ])
+
+  bitstream = ctx.actions.declare_file(ctx.attr.name + ".bit")
+  #debug_probes = ctx.actions.declare_file(ctx.attr.name + ".ltx")
+
+  ctx.actions.run_shell(
+    command = "/tools/Xilinx/Vivado/2019.2/bin/vivado -mode batch -source $1 -log $2 -journal $3",
+    arguments = [args],
+    inputs = [ctx.file.checkpoint, tcl],
+    outputs = [ 
+      bitstream, 
+      #debug_probes, 
+      log_file, 
+      journal_file
+    ],
+    progress_message = "vivado_run_tcl " + tcl.basename,
+    use_default_shell_env = True,
+  )
+
+  return [DefaultInfo(files = depset([
+    bitstream,
+    #debug_probes
+  ]))]
+
+create_bitstream = rule(
+  implementation = _create_bitstream_impl,
+  attrs = {
+    "checkpoint": attr.label(allow_single_file = [".dcp"]),
+    "build_template": attr.label(allow_single_file = True, default = "//:basic_create_bitstream.tcl" ),
+  }
+)
+
+# Takes verilog and/or vhdl source files and generates a bitstream.
+def fpga_bitstream(
+  name,
+  srcs,
+  constraints,
+  part,
+  topEntity,
+  optimize = True,
+):
+  
+  synthesize(
+    name = name + "_synthesis",
+    srcs = srcs,
+    part = part,
+    constraints = constraints,
+    topEntity = topEntity,
+  )
+
+  if optimize:
+    optimize_design(
+      name = name + "_optimize",
+      checkpoint = ":" + name + "_synthesis"
+    )
+    place_checkpoint = ":" + name + "_optimize"
+  else:
+    place_checkpoint = ":" + name + "_synthesis"
+
+  place(
+    name = name + "_place",
+    checkpoint = place_checkpoint
+  )
+
+  if optimize:
+    place_optimize(
+      name = name + "_place_optimize",
+      checkpoint = ":" + name + "_place",
+    )
+    route_checkpoint = ":" + name + "_place__optimize"
+  else:
+    route_checkpoint = ":" + name + "_place"
+
+  route(
+    name = name + "_route",
+    checkpoint = route_checkpoint,
+  )
+
+  create_bitstream(
+    name = name + "_bitstream",
+    checkpoint = ":" + name + "_route",
+  )
