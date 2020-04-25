@@ -48,24 +48,24 @@ Installing Vivado on WSL requires an X11 server. However, running startx fails i
 * The Bazel rules right now hard-code the 2019.2 release of Vivado. I plan to fix this in the future using Bazeal macros to create toolchain definitions.
 
 ## Downloading a bitstream
-  1. Start `hw_server` in a terminal. By default, this is under `/tools/Xilinx/2019.2/bin` On WSL, do this in the host Windows OS (By default, in `C:\Xilinx\Vivado\2019.2\bin).
+  1. Start `hw_server` in a terminal. By default, this is under `/tools/Xilinx/2019.2/bin` On WSL, do this in the host Windows OS (By default, in `C:\Xilinx\Vivado\2019.2\bin`).
   2. Put the following tcl commands into a connect_hw_server.tcl 
-		```
-    # Connect to the Digilent Cable on localhost:3121
-		open_hw_manager
-		connect_hw_server -url localhost:3121                                                                                   
-		current_hw_target [get_hw_targets] 
-		open_hw_target
-		```
+  ```
+  # Connect to the Digilent Cable on localhost:3121
+  open_hw_manager
+  connect_hw_server -url localhost:3121                                                                                   
+  current_hw_target [get_hw_targets] 
+  open_hw_target
+  ```
   3. Put the more tcl commands into another tcl script called program_device.tcl:
-    ```
-    # Program and Refresh the Device
-    current_hw_device [lindex [get_hw_devices] 1]
-    refresh_hw_device -update_hw_probes false [lindex [get_hw_devices] 1]
-    set_property PROGRAM.FILE {bazel-bin/blinkenlights_bitstream.bit} [lindex [get_hw_devices] 1]
-    program_hw_devices [lindex [get_hw_devices] 1]
-    refresh_hw_device [lindex [get_hw_devices] 1] 
-    ```
+  ```
+  # Program and Refresh the Device
+  current_hw_device [lindex [get_hw_devices] 1]
+  refresh_hw_device -update_hw_probes false [lindex [get_hw_devices] 1]
+  set_property PROGRAM.FILE {bazel-bin/blinkenlights_bitstream.bit} [lindex [get_hw_devices] 1]
+  program_hw_devices [lindex [get_hw_devices] 1]
+  refresh_hw_device [lindex [get_hw_devices] 1] 
+  ```
   4. Start Vivdo in tcl mode `vivado -mode tcl`
   5. Run `source connect_hw_server.tcl`. This takes a while, so you will probably want to keep this vivado session open while you work.
   6. Each time you want to download to the board, run `source program_device.tcl`.
