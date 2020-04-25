@@ -1,7 +1,7 @@
 # FPGA Rules for Bazel
 Why is turning vhdl and verilog into a bitstream so goddamn hard? Development in this space in encumbered by proprietary tooling not built for integration into build systems. You generally have two options:
   1) Create project files full of magic that nobody really wants that do all of the steps for you. These are generally tied to a proprietary IDE and aren't portable at all. I really just want to use VSCode or vim.
-  2) Write tcl scripts, invoking arcane commands you scry from an 1800 page reference manual in a very particular order. Again, not portable, but at least you can break the processes 
+  2) Write tcl scripts, invoking arcane commands you scry from an 1800 page reference manual in a very particular order. Again, not portable, but at least you can break the process into stages and control it from outside the tool.
 
 These Bazel rules seek to ameliorate these woes by generating tcl scripts that do the one fucking thing you want with an FPGA: turn my goddamn HDL and constraints into a bitstream so you can download it onto your FPGA and make some stupid lights blink.
 
@@ -31,8 +31,13 @@ You can also compose these rules as you see fit and write your own synthesis rul
 ## Requirements
 I tested these rules in Debian with Windows Subsystem for Linux. If they work in this exotic setup, they'll almost certainly work on any Linux distro with Vivado installed.
 
-1. Install Vivado to /tools/Xilinx (the default location on Linux). Future work to inject toolchains will allow other setups.
-2. Take a dependency on these rules in your Bazel `WORKSPACE` file. Probably a `git_repository` rule.
+  1. Install Vivado to /tools/Xilinx (the default location on Linux). Future work to inject toolchains will allow other setups.
+  2. Take a dependency on these rules in your Bazel `WORKSPACE` file. Probably a `git_repository` rule.
+  3. Add the following to your .bazelrc file (preferably, the .bazelrc in your enlistment):
+    ```
+    build --action_env=HOME
+    ```
+    Vivado looks for random crap in your home directory and path concatenation will fail if you don't do this.
 
 ### WSL
 Installing Vivado on WSL requires an X11 server. However, running startx fails in WSL for me, so I had to install VcXsrv.
@@ -40,7 +45,7 @@ Installing Vivado on WSL requires an X11 server. However, running startx fails i
 2. I couldn't get the cable driver to work in WSL. To work around this, install Vivado Lab Edition on the host Windows environment.
 
 ### Notes
-The Bazel rules right now hard-code the 2019.2 release of Vivado. I plan to fix this in the future using Bazeal macros to create toolchain definitions.
+* The Bazel rules right now hard-code the 2019.2 release of Vivado. I plan to fix this in the future using Bazeal macros to create toolchain definitions.
 
 ## Downloading a bitstream
   1. Start `hw_server` in a terminal. By default, this is under `/tools/Xilinx/2019.2/bin` On WSL, do this in the host Windows OS (By default, in `C:\Xilinx\Vivado\2019.2\bin).
