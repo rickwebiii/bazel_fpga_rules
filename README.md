@@ -53,8 +53,8 @@ Installing Vivado on WSL requires an X11 server. However, running startx fails i
   ```
   # Connect to the Digilent Cable on localhost:3121
   open_hw_manager
-  connect_hw_server -url localhost:3121                                                                                   
-  current_hw_target [get_hw_targets] 
+  connect_hw_server -url localhost:3121
+  current_hw_target [get_hw_targets]
   open_hw_target
   ```
   3. Put the more tcl commands into another tcl script called program_device.tcl:
