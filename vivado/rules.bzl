@@ -264,7 +264,7 @@ def fpga_bitstream(
       name = name + "_place_optimize",
       checkpoint = ":" + name + "_place",
     )
-    route_checkpoint = ":" + name + "_place__optimize"
+    route_checkpoint = ":" + name + "_place_optimize"
   else:
     route_checkpoint = ":" + name + "_place"
 
