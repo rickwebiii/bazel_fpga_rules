@@ -1,0 +1,10 @@
+exports_files(
+  glob(["**/*"], allow_empty = False)
+)
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+  name = "files",
+  srcs = glob(["**/*"], allow_empty = False)
+)

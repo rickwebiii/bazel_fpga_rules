@@ -34,9 +34,9 @@ I tested these rules in Debian with Windows Subsystem for Linux. If they work in
   1. Install Vivado to /tools/Xilinx (the default location on Linux). Future work to inject toolchains will allow other setups.
   2. Take a dependency on these rules in your Bazel `WORKSPACE` file. Probably a `git_repository` rule.
   3. Add the following to your .bazelrc file (preferably, the .bazelrc in your enlistment):
-    ```
+    ``
     build --action_env=HOME
-    ```
+    ``
     Vivado looks for random crap in your home directory and path concatenation will fail if you don't do this.
 
 ### WSL

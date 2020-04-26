@@ -95,9 +95,9 @@ synthesize = rule(
     "constraints": attr.label_list(allow_files = [".xdc"]),
     "topEntity": attr.string(),
     "part": attr.string(),
-    "_files_tcl_template": attr.label( allow_single_file = True, default = Label("//:files.tcl")),
-    "_constraints_template": attr.label( allow_single_file = True, default = Label("//:constraints.tcl")),
-    "build_template": attr.label( allow_single_file = True, default = Label("//:basic_synthesis.tcl")),
+    "_files_tcl_template": attr.label( allow_single_file = True, default = Label("//vivado:files.tcl")),
+    "_constraints_template": attr.label( allow_single_file = True, default = Label("//vivado:constraints.tcl")),
+    "build_template": attr.label( allow_single_file = True, default = Label("//vivado:basic_synthesis.tcl")),
     "synth_args": attr.string_list(allow_empty = True, default = []),
   },
 )
@@ -145,7 +145,7 @@ optimize_design = rule(
   implementation = _run_tcl_from_checkpoint_impl,
   attrs = {
     "checkpoint": attr.label(allow_single_file = [".dcp"]),
-    "build_template": attr.label(allow_single_file = True, default = "//:basic_optimize.tcl" ),
+    "build_template": attr.label(allow_single_file = True, default = "//vivado:basic_optimize.tcl" ),
   }
 )
 
@@ -153,7 +153,7 @@ place = rule(
   implementation = _run_tcl_from_checkpoint_impl,
   attrs = {
     "checkpoint": attr.label(allow_single_file = [".dcp"]),
-    "build_template": attr.label(allow_single_file = True, default = "//:basic_place.tcl" ),
+    "build_template": attr.label(allow_single_file = True, default = "//vivado:basic_place.tcl" ),
   }
 )
 
@@ -161,7 +161,7 @@ place_optimize = rule(
   implementation = _run_tcl_from_checkpoint_impl,
   attrs = {
     "checkpoint": attr.label(allow_single_file = [".dcp"]),
-    "build_template": attr.label(allow_single_file = True, default = "//:basic_place_optimize.tcl" ),
+    "build_template": attr.label(allow_single_file = True, default = "//vivado:basic_place_optimize.tcl" ),
   }
 )
 
@@ -169,7 +169,7 @@ route = rule(
   implementation = _run_tcl_from_checkpoint_impl,
   attrs = {
     "checkpoint": attr.label(allow_single_file = [".dcp"]),
-    "build_template": attr.label(allow_single_file = True, default = "//:basic_route.tcl" ),
+    "build_template": attr.label(allow_single_file = True, default = "//vivado:basic_route.tcl" ),
   }
 )
 
@@ -223,7 +223,7 @@ create_bitstream = rule(
   implementation = _create_bitstream_impl,
   attrs = {
     "checkpoint": attr.label(allow_single_file = [".dcp"]),
-    "build_template": attr.label(allow_single_file = True, default = "//:basic_create_bitstream.tcl" ),
+    "build_template": attr.label(allow_single_file = True, default = "//vivado:basic_create_bitstream.tcl" ),
   }
 )
 
