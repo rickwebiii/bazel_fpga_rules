@@ -65,12 +65,13 @@ def _clash_to_vhdl_impl(ctx):
 
   args.add_all([
     ctx.file.top_entity,
+    ctx.genfiles_dir.path
   ])
 
   ctx.actions.run_shell(
-    command = "clash --vhdl $1",
+    command = "clash --vhdl $1 -outputdir $2",
     arguments = [args],
-    inputs = ctx.files.srcs + [ctx.file._clash_shell, ctx.file.top_entity],
+    inputs = ctx.files.srcs + [ctx.file.top_entity],
     outputs = outputs,
     use_default_shell_env = True,
   )
@@ -83,7 +84,7 @@ clash_to_vhdl = rule(
     "srcs": attr.label_list(allow_files = [".hs"]),
     "outputs": attr.string_list(allow_empty = False),
     "top_entity": attr.label(allow_single_file = [".hs"]),
-    "_clash_shell": attr.label(allow_single_file = True, default = "@clash_repo//:shell.nix")
+    #"_clash_shell": attr.label(allow_single_file = True, default = "@clash_repo//:shell.nix")
   },
   toolchains = ["@fpga_rules//clash:toolchain_type"]
 )
@@ -104,7 +105,7 @@ def _clash_to_verilog_impl(ctx):
   ctx.actions.run_shell(
     command = "clash --verilog $1 -outputdir $2",
     arguments = [args],
-    inputs = ctx.files.srcs + [ctx.file._clash_shell, ctx.file.top_entity],
+    inputs = ctx.files.srcs + [ctx.file.top_entity],
     outputs = outputs,
     use_default_shell_env = True,
   )
@@ -117,7 +118,7 @@ clash_to_verilog = rule(
     "srcs": attr.label_list(allow_files = [".hs"]),
     "outputs": attr.string_list(allow_empty = False),
     "top_entity": attr.label(allow_single_file = [".hs"]),
-    "_clash_shell": attr.label(allow_single_file = True, default = "@clash_repo//:shell.nix")
+    #"_clash_shell": attr.label(allow_single_file = True, default = "@clash_repo//:shell.nix")
   },
   toolchains = ["@fpga_rules//clash:toolchain_type"]
 )

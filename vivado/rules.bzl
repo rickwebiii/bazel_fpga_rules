@@ -7,6 +7,8 @@ def _synthesize(ctx):
       files_tcl_content += "read_verilog " + file.path + "\n"
     elif file.extension == "vhd" or file.extension == "vhdl":
       files_tcl_content += "read_vhdl " + file.path + "\n"
+    elif file.extension == "xci":
+      files_tcl_content += "read_ip " + file.path + "\n"
     else:
       fail("Unknown HDL file:" + file.path)
 
@@ -91,7 +93,7 @@ def _synthesize(ctx):
 synthesize = rule(
   implementation = _synthesize,
   attrs = {
-    "srcs": attr.label_list(allow_files = [ ".v", "vh", ".vhd", ".vhdl" ]),
+    "srcs": attr.label_list(allow_files = [ ".v", "vh", ".vhd", ".vhdl", "xci" ]),
     "constraints": attr.label_list(allow_files = [".xdc"]),
     "topEntity": attr.string(),
     "part": attr.string(),
