@@ -175,6 +175,56 @@ route = rule(
   }
 )
 
+def _run_tcl_template(ctx):
+  tcl = ctx.actions.declare_file(ctx.file.build_template.basename + ".tcl")
+
+  ctx.actions.expand_template(
+    template = ctx.file.build_template,
+    output = tcl,
+    substitutions = {
+      "{PROJECT_NAME}": ctx.attr.name,
+      "{BASE_DIR}": ctx.genfiles_dir.path,
+    }
+  )
+  
+  args = ctx.actions.args()
+
+  log_file = ctx.actions.declare_file(ctx.attr.name + ".log")
+  journal_file = ctx.actions.declare_file(ctx.attr.name + ".jou")
+
+  args.add_all([
+    tcl,
+    log_file,
+    journal_file,
+  ])
+
+  outputs = []
+
+  for out in ctx.attr.outs:
+    outputs += [ctx.actions.declare_file(out)]
+
+  ctx.actions.run_shell(
+    command = "/tools/Xilinx/Vivado/2019.2/bin/vivado -mode batch -source $1 -log $2 -journal $3",
+    arguments = [args],
+    inputs = [tcl],
+    outputs = outputs + [ log_file, journal_file ],
+    progress_message = "vivado_run_tcl " + tcl.basename,
+    use_default_shell_env = True,
+  )
+
+  return [DefaultInfo(files = depset(
+    outputs
+  ))]
+   
+
+run_tcl_template = rule(
+  implementation = _run_tcl_template,
+  attrs = {
+    "build_template": attr.label(allow_single_file = True),
+    "outs": attr.string_list(allow_empty = False)
+  }
+)
+
 def _create_bitstream_impl(ctx):
   tcl = ctx.actions.declare_file(ctx.file.build_template.basename + ".tcl")
 
