@@ -1,9 +1,9 @@
 # FPGA Rules for Bazel
-Why is turning vhdl and verilog into a bitstream so goddamn hard? Development in this space in encumbered by proprietary tooling not built for integration into build systems. You generally have two options:
+Why is turning vhdl and verilog into a bitstream so hard? Development in this space in encumbered by proprietary tooling not built for integration into build systems. You generally have two options:
   1) Create project files full of magic that nobody really wants that do all of the steps for you. These are generally tied to a proprietary IDE and aren't portable at all. I really just want to use VSCode or vim.
   2) Write tcl scripts, invoking arcane commands you scry from an 1800 page reference manual in a very particular order. Again, not portable, but at least you can break the process into stages and control it from outside the tool.
 
-These Bazel rules seek to ameliorate these woes by generating tcl scripts that do the one fucking thing you want with an FPGA: turn my goddamn HDL and constraints into a bitstream so you can download it onto your FPGA and make some stupid lights blink.
+These Bazel rules seek to ameliorate these woes by generating tcl scripts that do the one fucking thing you want with an FPGA: turn my HDL and constraints into a bitstream so you can download it onto your FPGA and make some lights blink.
 
 ## Vivado rules
 `vivado.bzl` provides Bazel rules to turn HDL into a bitstrean that you can download to your FPGA.
